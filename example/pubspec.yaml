@@ -1,0 +1,25 @@
+name: epub_everwise_example
+description: Example
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.1 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  epub_everwise:
+    path: ../
+  extended_image: ^8.3.1
+  flutter_bloc: ^8.1.6
+  file_picker: ^8.1.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.2
+
+flutter:
+  assets:
+    - assets/
+  uses-material-design: true

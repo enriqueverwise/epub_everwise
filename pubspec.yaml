@@ -1,0 +1,41 @@
+name: epub_everwise
+description: Flutter pub reader for read EPUB documents.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: '>=2.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  epub_parser:
+    path: modules/epub_parser
+  equatable: ^2.0.5
+  html: ^0.15.4
+  flutter_widget_from_html_core: ^0.15.2
+  scrollable_positioned_list: ^0.3.8
+  collection: ^1.18.0
+  universal_file: ^1.0.0
+  flutter_bloc: ^8.1.6
+  extended_image: ^8.3.1
+  csslib: ^1.0.2
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+
+flutter:
+  assets:
+    - assets/
+
+  fonts:
+    - family: Times
+      fonts:
+        - asset: assets/fonts/times.ttf
+
