@@ -46,14 +46,14 @@ mixin EpubPaginationMixin {
         paragraph,
       );
     } else if (paragraph.type.isTitle) {
-      heightParagraph = calculateHeightPerTextParagraph(
+      heightParagraph = (calculateHeightPerTextParagraph(
         screenSize.width,
         style.copyWith(
           fontSize: style.fontSize! + 3,
           fontWeight: FontWeight.bold,
         ),
         paragraph,
-      );
+      )+20);
     } else {
       heightParagraph = getImageHeight(
             paragraph,

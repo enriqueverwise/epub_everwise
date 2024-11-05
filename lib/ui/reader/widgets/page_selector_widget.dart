@@ -41,6 +41,7 @@ class PageSelectorWidget extends StatelessWidget {
             controller: controller,
             scrollDirection: state.decorator.style.scrollDirection,
             scrollBehavior: const CupertinoScrollBehavior(),
+
             onPageChanged: (value) {
               context.read<EpubReaderCubit>().goToPage(value);
             },

@@ -21,7 +21,7 @@ class EpubReaderView extends StatelessWidget {
     return BlocBuilder<EpubReaderCubit, EpubReaderState>(
       builder: (context, state) {
         return Container(
-          padding: const EdgeInsets.only(top: kToolbarHeight),
+          padding: const EdgeInsets.only(top: kToolbarHeight/2),
           decoration: switch (state.decorator.style.backgroundOption) {
             EpubBackgroundOption.everwiseColor => const BoxDecoration(
                 gradient: LinearGradient(
