@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:epub_everwise/epub_everwise.dart';
+import 'package:epub_everwise/ui/epub_provider/epub_book_provider.dart';
 import 'package:epub_everwise_example/read_book_cubit.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';

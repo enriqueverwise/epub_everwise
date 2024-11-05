@@ -1,3 +1,4 @@
+import 'package:epub_everwise/domain/entities/epub_reader_physics.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -26,28 +27,28 @@ enum EpubBackgroundOption {
 class EpubStyle extends Equatable {
   final TextStyle textStyle;
   final EpubBackgroundOption backgroundOption;
-  final Axis scrollDirection;
+  final EpubReaderPhysics physics;
   const EpubStyle({
     required this.textStyle,
     required this.backgroundOption,
-    this.scrollDirection = Axis.horizontal,
+    required this.physics,
   });
 
   EpubStyle copyWith({
     TextStyle? textStyle,
     EpubBackgroundOption? backgroundOption,
-    Axis? scrollDirection,
+    EpubReaderPhysics? physics,
   }) =>
       EpubStyle(
         textStyle: textStyle ?? this.textStyle,
         backgroundOption: backgroundOption ?? this.backgroundOption,
-        scrollDirection: scrollDirection ?? this.scrollDirection,
+        physics: physics ?? this.physics,
       );
 
   @override
   List<Object?> get props => [
     textStyle,
     backgroundOption,
-    scrollDirection,
+    physics,
   ];
 }

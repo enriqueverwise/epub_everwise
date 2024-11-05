@@ -1,4 +1,5 @@
 import 'package:epub_everwise/domain/entities/epub_reader_content.dart';
+import 'package:epub_everwise/domain/entities/epub_reader_physics.dart';
 import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
 import 'package:epub_everwise/data/models/epub_page.dart';
@@ -35,6 +36,7 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
               style: EpubStyle(
                 textStyle: textStyle,
                 backgroundOption: EpubBackgroundOption.everwiseColor,
+                physics: EpubReaderPhysics.book(),
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: 15,
@@ -150,20 +152,27 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
   }
 
   void updateStyle(EpubStyle style) {
+    final metadataParagraph = state.chapterContent.listPages[state.pageIndex]
+        .paragraphsPerPage.first.metadata;
+
     final listPages = _getListPages(
       state.chapterContent.chapterIndex,
       style.textStyle,
     );
-    int pageIndex = listPages.indexWhere(
-        (page) => page.chapterIndex == state.chapterContent.chapterIndex);
+
+    final pageIndex = listPages.indexWhere(
+      (page) => page.doesParagraphBelongToPage(
+        metadataParagraph,
+      ),
+    );
+
     emit(
       state.copyWith(
         decorator: state.decorator.copyWith(
           style: style.copyWith(
             textStyle: style.textStyle.copyWith(
-              color: style.backgroundOption.isLight
-                  ? Colors.black
-                  : Colors.white,
+              color:
+                  style.backgroundOption.isLight ? Colors.black : Colors.white,
             ),
           ),
         ),

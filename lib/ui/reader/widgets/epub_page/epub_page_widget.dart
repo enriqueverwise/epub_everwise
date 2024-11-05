@@ -42,19 +42,36 @@ class EpubPageWidget extends StatelessWidget with EpubPageMixin {
   }
 
   String _getHtmlContent() {
-    return [
-      if (page.startBreakParagraph != null)
-        "<p>${page.startBreakParagraph!.paragraph.element.text.substring(
-          page.startBreakParagraph!.startPosition,
-          page.startBreakParagraph!.endPosition,
-        )} </p>",
-      ...page.paragraphsPerPage.map(
-        (ph) => ph.element.outerHtml
+    final htmlContent = List.generate(page.paragraphsPerPage.length, (index) {
+      String paragraph;
+      if (page.paragraphsPerPage[index].metadata.startPosition != null ||
+          page.paragraphsPerPage[index].metadata.endPosition != null) {
+        paragraph = page.paragraphsPerPage[index].value.element.text.substring(
+          page.paragraphsPerPage[index].metadata.startPosition ?? 0,
+          page.paragraphsPerPage[index].metadata.endPosition,
+        );
+        paragraph = "<p color='blue'>$paragraph</p>";
+      } else {
+        paragraph = page.paragraphsPerPage[index].value.element.outerHtml
+            .substring(
+              page.paragraphsPerPage[index].metadata.startPosition ?? 0,
+              page.paragraphsPerPage[index].metadata.endPosition,
+            )
             .replaceAll("<br></br>", "")
-            .replaceAll("<p>&nbsp;</p>", ""),
-      ),
-      if (page.endBreakParagraph != null)
-        "<p>${page.endBreakParagraph!.paragraph.element.text.substring(0, page.endBreakParagraph!.breakPosition).replaceAll("<br></br>", "")}</p>",
-    ].join();
+            .replaceAll("<p>&nbsp;</p>", "");
+      }
+      return paragraph;
+    });
+
+    return htmlContent.join();
+    //if (page.startBreakParagraph != null)
+    // "<p>${page.startBreakParagraph!.paragraph.element.text.substring(
+    //   page.startBreakParagraph!.startPosition,
+    //   page.startBreakParagraph!.endPosition,
+    // )} </p>",
+
+    // if (page.endBreakParagraph != null)
+    //   "<p>${page.endBreakParagraph!.paragraph.element.text.substring(0, page.endBreakParagraph!.breakPosition).replaceAll("<br></br>", "")}</p>",
+    // ].join();
   }
 }

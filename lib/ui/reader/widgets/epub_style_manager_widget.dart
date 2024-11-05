@@ -1,3 +1,4 @@
+import 'package:epub_everwise/domain/entities/epub_reader_physics.dart';
 import 'package:epub_everwise/domain/entities/epub_style.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -358,13 +359,15 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
   }
 
   Widget scrollDirectionItem({required Axis scrollDirection}) {
-    bool isSelected = _epubStyle.scrollDirection == scrollDirection;
+    bool isSelected = _epubStyle.physics.scrollDirection == scrollDirection;
 
     return InkWell(
       onTap: () {
         setState(() {
           _epubStyle = _epubStyle.copyWith(
-            scrollDirection: scrollDirection,
+            physics: scrollDirection == Axis.horizontal
+                ? EpubReaderPhysics.book()
+                : EpubReaderPhysics.scroll(),
           );
         });
       },

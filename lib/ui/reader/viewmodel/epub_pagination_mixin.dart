@@ -47,13 +47,14 @@ mixin EpubPaginationMixin {
       );
     } else if (paragraph.type.isTitle) {
       heightParagraph = (calculateHeightPerTextParagraph(
-        screenSize.width,
-        style.copyWith(
-          fontSize: style.fontSize! + 3,
-          fontWeight: FontWeight.bold,
-        ),
-        paragraph,
-      )+20);
+            screenSize.width,
+            style.copyWith(
+              fontSize: style.fontSize! + 3,
+              fontWeight: FontWeight.bold,
+            ),
+            paragraph,
+          ) +
+          20);
     } else {
       heightParagraph = getImageHeight(
             paragraph,
@@ -153,25 +154,33 @@ mixin EpubPaginationMixin {
     for (int indexParagraph = 0;
         indexParagraph < listParagraphs.length;
         indexParagraph++) {
-      final paragraph = listParagraphs[indexParagraph];
+      final metadata = EpubParagraphMetadata(
+        paragraphIndex: indexParagraph,
+        chapterIndex: listParagraphs[indexParagraph].chapterIndex,
+      );
+
+      final paragraphPage = EpubParagraphPage(
+        value: listParagraphs[indexParagraph],
+        metadata: metadata,
+      );
 
       // calcular tamaño párrafo
       double heightParagraph = getHeightParagraph(
-        paragraph,
+        paragraphPage.value,
         screenSize,
         style,
         images,
       );
 
       if (currentPage != null &&
-          currentPage.chapterIndex != paragraph.chapterIndex) {
+          currentPage.chapterIndex != paragraphPage.value.chapterIndex) {
         listPages.add(currentPage);
         currentPage = null;
       }
       if (currentPage == null) {
         final listPagesOfParagraph = getPagesForParagraph(
-          paragraph: paragraph,
-          maxHeight: maxHeight,
+          paragraph: paragraphPage,
+          maxHeight: maxHeight-40,
           heightParagraph: heightParagraph,
           realHeightParagraph: heightParagraph,
         );
@@ -191,7 +200,7 @@ mixin EpubPaginationMixin {
         final remainingPageHeight = maxHeight - currentPage.height;
 
         if (remainingPageHeight >= heightParagraph) {
-          currentPage.paragraphsPerPage.add(paragraph);
+          currentPage.paragraphsPerPage.add(paragraphPage);
           currentPage = currentPage.copyWith(
             height: (currentPage.height + heightParagraph + 20),
           );
@@ -202,26 +211,29 @@ mixin EpubPaginationMixin {
             continue;
           }
         } else {
-          if (paragraph.type.isImg) {
+          if (paragraphPage.value.type.isImg) {
             listPages.add(currentPage);
             currentPage = EpubPage(
-              paragraphsPerPage: [paragraph],
-              chapterIndex: paragraph.chapterIndex,
+              paragraphsPerPage: [paragraphPage],
+              chapterIndex: paragraphPage.value.chapterIndex,
               height: heightParagraph,
             );
 
             continue;
           }
           EndBreakEpubParagraph? endBreakEpubParagraph = calculateNiceEndOfPage(
-            paragraph: paragraph,
-            heightPageAvailable: remainingPageHeight,
+            paragraph: paragraphPage.value,
+            heightPageAvailable: remainingPageHeight-20,
             paragraphHeight: heightParagraph,
           );
 
           if (endBreakEpubParagraph != null) {
-            currentPage = currentPage.copyWith(
-              endBreakParagraph: endBreakEpubParagraph,
-              height: maxHeight,
+            currentPage.paragraphsPerPage.add(
+              paragraphPage.copyWith(
+                metadata: paragraphPage.metadata.copyWith(
+                  endPosition: endBreakEpubParagraph.breakPosition,
+                ),
+              ),
             );
           }
 
@@ -229,7 +241,7 @@ mixin EpubPaginationMixin {
           currentPage = null;
 
           final listParagraphPages = getPagesForParagraph(
-            paragraph: paragraph,
+            paragraph: paragraphPage,
             maxHeight: maxHeight,
             heightParagraph: heightParagraph -
                 (endBreakEpubParagraph != null
@@ -258,7 +270,7 @@ mixin EpubPaginationMixin {
   }
 
   List<EpubPage> getPagesForParagraph({
-    required EpubParagraph paragraph,
+    required EpubParagraphPage paragraph,
     required double maxHeight,
     required double heightParagraph,
     required double realHeightParagraph,
@@ -266,10 +278,10 @@ mixin EpubPaginationMixin {
   }) {
     final listPagesParagraph = <EpubPage>[];
 
-    if (paragraph.type.isImg) {
+    if (paragraph.value.type.isImg) {
       final epubPage = EpubPage(
         paragraphsPerPage: [paragraph],
-        chapterIndex: paragraph.chapterIndex,
+        chapterIndex: paragraph.value.chapterIndex,
         height: heightParagraph + 40,
       );
       listPagesParagraph.add(epubPage);
@@ -285,30 +297,38 @@ mixin EpubPaginationMixin {
       sizeParagraphPortion = heightParagraph * percentagePortionParagraph;
 
       final textTotalPortionParagraph =
-          (paragraph.element.text.substring(startPosition).length *
+          (paragraph.value.element.text.substring(startPosition).length *
                   percentagePortionParagraph)
               .floor();
+
 
       for (int indexPage = 0; indexPage < nRealPages; indexPage++) {
         try {
           int endPosition = (startPosition + textTotalPortionParagraph).floor();
           endPosition = calculateBestEndPosition(
-            paragraph: paragraph,
+            paragraph: paragraph.value,
             startPosition: startPosition,
             endPosition: endPosition,
           );
-          final startBreakParagraph = StartBreakEpubParagraph(
-            startPosition: startPosition,
-            endPosition: endPosition,
-            paragraph: paragraph,
-            totalHeight: heightParagraph,
-            usedHeight: maxHeight,
+
+          paragraph = paragraph.copyWith(
+            metadata: paragraph.metadata.copyWith(
+              startPosition: startPosition,
+              endPosition: endPosition,
+            ),
           );
+
+          // final startBreakParagraph = StartBreakEpubParagraph(
+          //   startPosition: startPosition,
+          //   endPosition: endPosition,
+          //   paragraph: paragraph,
+          //   totalHeight: heightParagraph,
+          //   usedHeight: maxHeight,
+          // );
           startPosition = endPosition;
           final epubPage = EpubPage(
-            startBreakParagraph: startBreakParagraph,
-            paragraphsPerPage: const [],
-            chapterIndex: paragraph.chapterIndex,
+            paragraphsPerPage: [paragraph],
+            chapterIndex: paragraph.value.chapterIndex,
             height: maxHeight,
           );
           listPagesParagraph.add(epubPage);
@@ -320,23 +340,28 @@ mixin EpubPaginationMixin {
     EpubPage epubPage;
     if (startPosition != 0) {
       //Page with leftOvers of paragraph
-      final startBreakParagraph = StartBreakEpubParagraph(
-        startPosition: startPosition,
-        paragraph: paragraph,
-        totalHeight: heightParagraph,
-        usedHeight: heightParagraph - sizeParagraphPortion,
+
+      paragraph = paragraph.copyWith(
+        metadata: paragraph.metadata.copyWith(
+          startPosition: startPosition,
+        ),
       );
+      // final startBreakParagraph = StartBreakEpubParagraph(
+      //   startPosition: startPosition,
+      //   paragraph: paragraph,
+      //   totalHeight: heightParagraph,
+      //   usedHeight: heightParagraph - sizeParagraphPortion,
+      // );
 
       epubPage = EpubPage(
-        startBreakParagraph: startBreakParagraph,
-        paragraphsPerPage: [],
-        chapterIndex: paragraph.chapterIndex,
+        paragraphsPerPage: [paragraph],
+        chapterIndex: paragraph.value.chapterIndex,
         height: heightParagraph - sizeParagraphPortion,
       );
     } else {
       epubPage = EpubPage(
         paragraphsPerPage: [paragraph],
-        chapterIndex: paragraph.chapterIndex,
+        chapterIndex: paragraph.value.chapterIndex,
         height: heightParagraph,
       );
     }

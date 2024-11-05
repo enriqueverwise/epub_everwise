@@ -23,7 +23,11 @@ enum TypeParagraph {
 }
 
 class EpubParagraph extends Equatable {
-  const EpubParagraph(this.element, this.chapterIndex, this.type);
+  const EpubParagraph(
+    this.element,
+    this.chapterIndex,
+    this.type,
+  );
 
   final dom.Element element;
   final int chapterIndex;

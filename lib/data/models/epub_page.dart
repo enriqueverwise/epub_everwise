@@ -68,8 +68,70 @@ class EndBreakEpubParagraph extends BreakEpubParagraph {
       ];
 }
 
+class EpubPageInfo extends Equatable {
+  final List<EpubParagraphMetadata> listParagraphMetadata;
+
+  const EpubPageInfo({required this.listParagraphMetadata});
+
+  @override
+  List<Object?> get props => [listParagraphMetadata];
+}
+
+class EpubParagraphMetadata extends Equatable {
+  final int paragraphIndex;
+  final int chapterIndex;
+  final int? startPosition;
+  final int? endPosition;
+
+  const EpubParagraphMetadata({
+    required this.paragraphIndex,
+    required this.chapterIndex,
+    this.startPosition,
+    this.endPosition,
+  });
+
+  EpubParagraphMetadata copyWith({
+    int? paragraphIndex,
+    int? chapterIndex,
+    int? startPosition,
+    int? endPosition,
+  }) =>
+      EpubParagraphMetadata(
+        paragraphIndex: paragraphIndex ?? this.paragraphIndex,
+        chapterIndex: chapterIndex ?? this.chapterIndex,
+        startPosition: startPosition ?? this.startPosition,
+        endPosition: endPosition ?? this.endPosition,
+      );
+
+  @override
+  List<Object?> get props =>
+      [paragraphIndex, chapterIndex, startPosition, endPosition];
+}
+
+class EpubParagraphPage extends Equatable {
+  final EpubParagraphMetadata metadata;
+  final EpubParagraph value;
+
+  const EpubParagraphPage({
+    required this.value,
+    required this.metadata,
+  });
+
+  EpubParagraphPage copyWith({
+    EpubParagraph? value,
+    EpubParagraphMetadata? metadata,
+  }) =>
+      EpubParagraphPage(
+        value: value ?? this.value,
+        metadata: metadata ?? this.metadata,
+      );
+
+  @override
+  List<Object?> get props => [value, metadata];
+}
+
 class EpubPage extends Equatable {
-  final List<EpubParagraph> paragraphsPerPage;
+  final List<EpubParagraphPage> paragraphsPerPage;
   final int chapterIndex;
   final double height;
   final StartBreakEpubParagraph? startBreakParagraph;
@@ -84,7 +146,7 @@ class EpubPage extends Equatable {
   });
 
   EpubPage copyWith({
-    List<EpubParagraph>? paragraphsPerPage,
+    List<EpubParagraphPage>? paragraphsPerPage,
     int? chapterIndex,
     int? lines,
     StartBreakEpubParagraph? startBreakParagraph,
@@ -107,4 +169,26 @@ class EpubPage extends Equatable {
         endBreakParagraph,
         height
       ];
+}
+
+extension EpubPageExt on EpubPage {
+  EpubParagraphPage? getParagraphByIndex(EpubParagraphMetadata metadata) {
+    return paragraphsPerPage
+        .where((paragraph) =>
+            paragraph.metadata.paragraphIndex == metadata.paragraphIndex)
+        .firstOrNull;
+  }
+
+  bool doesParagraphBelongToPage(EpubParagraphMetadata metadata) {
+    final paragraph = getParagraphByIndex(metadata);
+    if (paragraph != null) {
+      if ((paragraph.metadata.startPosition ?? 0) <=
+          (metadata.startPosition ?? 0)) {
+        final endParagraph = paragraph.metadata.endPosition;
+        return endParagraph == null ||
+            endParagraph >= (metadata.startPosition ?? 0);
+      }
+    }
+    return false;
+  }
 }

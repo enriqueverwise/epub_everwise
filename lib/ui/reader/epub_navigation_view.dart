@@ -4,13 +4,13 @@ import 'package:epub_everwise/data/models/chapter_view_value.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
 import 'package:epub_everwise/ui/reader/viewmodel/epub_reader_cubit.dart';
 import 'package:epub_everwise/ui/reader/widgets/epub_style_manager_widget.dart';
-import 'package:epub_everwise/ui/reader/widgets/page_selector_widget.dart';
+import 'package:epub_everwise/ui/reader/widgets/page_selector/page_selector_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/epub_page.dart';
 
-class EpubNavigationView extends StatefulWidget {
+class EpubNavigationView extends StatelessWidget {
   const EpubNavigationView({
     super.key,
     required this.listPages,
@@ -23,11 +23,6 @@ class EpubNavigationView extends StatefulWidget {
   final EpubBookContent content;
 
   @override
-  State<EpubNavigationView> createState() => _EpubNavigationViewState();
-}
-
-class _EpubNavigationViewState extends State<EpubNavigationView> {
-  @override
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints.expand(),
@@ -36,8 +31,8 @@ class _EpubNavigationViewState extends State<EpubNavigationView> {
         children: [
           Positioned.fill(
             child: PageSelectorWidget(
-              listPages: widget.listPages,
-              images: widget.epubBook.content?.images ?? {},
+              listPages: listPages,
+              images: epubBook.content?.images ?? {},
             ),
           ),
           navigationPanel(
@@ -64,7 +59,7 @@ class _EpubNavigationViewState extends State<EpubNavigationView> {
               ),
               child: Center(
                   child: Text(
-                      "${state.pageIndex + 1} of ${state.chapterContent.listPages.length} chapter: ${state.chapterContent.listPages[state.pageIndex.abs()].chapterIndex}  ${state.chapterContent.listPages[state.pageIndex.abs()].height.toStringAsFixed(2)}")),
+                      "${state.pageIndex + 1} of ${state.chapterContent.listPages.length} chapter: ${state.chapterContent.listPages[state.pageIndex.abs()].chapterIndex}  ${state.chapterContent.listPages[state.pageIndex.abs()].height.toStringAsFixed(2)}, ${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.paragraphIndex}:${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.startPosition}-${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.endPosition}")),
             ),
           );
         } else {
@@ -139,7 +134,7 @@ class _EpubNavigationViewState extends State<EpubNavigationView> {
                             return BottomSheet(
                               onClosing: () {},
                               builder: (context) => ListView(
-                                children: widget.content.listChapters
+                                children: content.listChapters
                                     .mapIndexed((index, chapter) => TextButton(
                                           child: Text(chapter.title ?? ""),
                                           onPressed: () => {
