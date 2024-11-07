@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:epub_everwise/data/models/chapter.dart';
 import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/chapter_view_value.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
@@ -47,6 +48,7 @@ class EpubNavigationView extends StatelessWidget {
   Widget pageInfoPanel() {
     return BlocBuilder<EpubReaderCubit, EpubReaderState>(
       builder: (context, state) {
+        final page = state.chapterContent.listPages[state.pageIndex.abs()];
         if (state.panelVisible) {
           return Positioned(
             bottom: 0,
@@ -58,8 +60,13 @@ class EpubNavigationView extends StatelessWidget {
                 color: Colors.black.withOpacity(0.3),
               ),
               child: Center(
-                  child: Text(
-                      "${state.pageIndex + 1} of ${state.chapterContent.listPages.length} chapter: ${state.chapterContent.listPages[state.pageIndex.abs()].chapterIndex}  ${state.chapterContent.listPages[state.pageIndex.abs()].height.toStringAsFixed(2)}, ${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.paragraphIndex}:${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.startPosition}-${state.chapterContent.listPages[state.pageIndex.abs()].paragraphsPerPage.first.metadata.endPosition}")),
+                  child: Text("${state.pageIndex + 1} of "
+                      "${state.chapterContent.listPages.length} "
+                      "chapter: ${page.chapterIndex} "
+                      " ${page.height.toStringAsFixed(2)}, "
+                      "${page.paragraphsPerPage.first.metadata.paragraphIndex}:"
+                      "${page.paragraphsPerPage.first.metadata.startPosition}-"
+                      "${page.paragraphsPerPage.first.metadata.endPosition}")),
             ),
           );
         } else {
@@ -132,17 +139,11 @@ class EpubNavigationView extends StatelessWidget {
                           context: context,
                           builder: (context) {
                             return BottomSheet(
+                              enableDrag: true,
+                              showDragHandle: true,
                               onClosing: () {},
-                              builder: (context) => ListView(
-                                children: content.listChapters
-                                    .mapIndexed((index, chapter) => TextButton(
-                                          child: Text(chapter.title ?? ""),
-                                          onPressed: () => {
-                                            Navigator.pop(context, index),
-                                          },
-                                        ))
-                                    .toList(),
-                              ),
+                              builder: (context) =>
+                                  getListChaptersWidget(context),
                             );
                           });
 
@@ -180,5 +181,35 @@ class EpubNavigationView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget getListChaptersWidget(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: content.listChapters.mapIndexed((index, chapter) {
+        return Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+          if (chapter is EpubViewSubChapter)
+            const SizedBox(
+              width: 30,
+              child: Text("-", textAlign: TextAlign.right,),
+            ),
+          Flexible(
+            child: TextButton(
+              child: Text(
+                chapter.title ?? "",
+                textAlign: TextAlign.left,
+              ),
+              onPressed: () => {
+                Navigator.pop(context, index),
+              },
+            ),
+          ),
+        ]);
+      }).toList(),
+    ));
   }
 }

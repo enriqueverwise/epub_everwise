@@ -123,7 +123,6 @@ class _ScrollableReaderWidgetState extends State<ScrollableReaderWidget> {
   @override
   Widget build(BuildContext context) {
     final sizeScreen = context.read<EpubReaderCubit>().getSizeScreen();
-    final height = MediaQuery.sizeOf(context).height;
     final cssContent = context
             .read<EpubReaderCubit>()
             .epubBook
@@ -162,6 +161,9 @@ class _ScrollableReaderWidgetState extends State<ScrollableReaderWidget> {
         itemBuilder: (BuildContext context, int index) {
           return Container(
             margin: widget.padding,
+            constraints: BoxConstraints(
+              minHeight: sizeScreen.height,
+            ),
             child: EpubPageWidget(
               screenSize: sizeScreen,
               style: widget.style,

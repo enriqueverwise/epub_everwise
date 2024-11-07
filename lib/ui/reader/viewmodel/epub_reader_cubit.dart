@@ -50,6 +50,8 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
   final EpubBook epubBook;
   final Size screenSize;
 
+  EpubChapterContent get currentChapter => state.chapterContent;
+
   void initBook() {
     final listPages = _getListPages(
       state.chapterContent.chapterIndex,
@@ -65,6 +67,8 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
       ),
     );
   }
+
+
 
   void onPageChange(EpubChangeDirection direction) {
     if (direction.isNext) {

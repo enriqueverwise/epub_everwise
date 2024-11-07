@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:epub_everwise/epub_everwise.dart' hide Image;
 import 'package:epub_everwise/data/models/epub_page.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
@@ -75,3 +78,4 @@ class EpubPageWidget extends StatelessWidget with EpubPageMixin {
     // ].join();
   }
 }
+
