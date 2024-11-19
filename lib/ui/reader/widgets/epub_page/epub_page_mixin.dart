@@ -26,6 +26,13 @@ mixin EpubPageMixin {
     if (element.localName == "p" && !styleMap.containsKey("text-align")) {
       styleMap.addAll({"text-align": "justify;"});
     }
+    if(element.localName == "table") {
+      styleMap.addAll({
+        'font-size': '${style.fontSize! - 3}px',
+        'font-weight': 'normal',
+        'border': '1',
+      });
+    }
     return styleMap;
   }
 
@@ -78,8 +85,7 @@ mixin EpubPageMixin {
           ),
         ),
       );
-    } else {
-      return null;
     }
+    return null;
   }
 }

@@ -4,6 +4,7 @@ import 'package:epub_everwise/ui/epub_provider/epub_book_provider.dart';
 import 'package:epub_everwise_example/read_book_cubit.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'
     show SystemChrome, SystemUiOverlayStyle, Uint8List, rootBundle;
@@ -17,6 +18,7 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
+
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
@@ -86,61 +88,71 @@ class _FilePickerScreenState extends State<FilePickerScreen> {
     'assets/alice_adventures.epub',
     'assets/bajo_la_luz.epub',
     'assets/lion_king.epub',
-    'assets/los-miserables.epub'
+    'assets/los-miserables.epub',
+    'assets/cook.epub',
   ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Epub demo'),
+      ),
       body: Center(
-        child: Column(
-          children: [
-            Text(
-                'Select one epub from the default list or pick one from your device'),
-            ...List.generate(
-              list.length,
-              (index) => TextButton(
-                onPressed: () async {
-                  final loadBook = await rootBundle.load(list[index]);
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Text(
+                  'Select one epub from the default list or pick one from your device', textAlign: TextAlign.center,),
+              SizedBox(height: 20),
+              ...List.generate(
+                list.length,
+                (index) => CupertinoButton(
+                  onPressed: () async {
+                    final loadBook = await rootBundle.load(list[index]);
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BookProvider(
-                        bookData: loadBook.buffer.asUint8List(),
-                      ),
-                    ),
-                  );
-
-                },
-                child: Text(
-                  list[index].replaceAll(
-                    "assets/",
-                    "",
-                  ),
-                ),
-              ),
-            ),
-            ElevatedButton(
-                onPressed: () async {
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles();
-
-                  if (result != null) {
-                    File file = File(result.files.single.path!);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => BookProvider(
-                          bookData: file.readAsBytesSync(),
+                          bookData: loadBook.buffer.asUint8List(),
                         ),
                       ),
                     );
-                  } else {
-                    // User canceled the picker
-                  }
-                },
-                child: Text('Pick From device')),
-          ],
+
+                  },
+                  child: Text(
+                    list[index].replaceAll(
+                      "assets/",
+                      "",
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                  onPressed: () async {
+                    FilePickerResult? result =
+                        await FilePicker.platform.pickFiles();
+
+                    if (result != null) {
+                      File file = File(result.files.single.path!);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BookProvider(
+                            bookData: file.readAsBytesSync(),
+                          ),
+                        ),
+                      );
+                    } else {
+                      // User canceled the picker
+                    }
+                  },
+                  child: Text('Pick From device')),
+            ],
+          ),
         ),
       ),
     );
@@ -208,4 +220,8 @@ class MyHomePage extends StatelessWidget {
                       ),
               );
       });
+
+
+
+
 }

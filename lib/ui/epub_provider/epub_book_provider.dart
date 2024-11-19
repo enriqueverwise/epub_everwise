@@ -21,29 +21,40 @@ class EpubBookProvider extends StatelessWidget {
       )..loadData(),
       child: SafeArea(
         child: Scaffold(
-          body: BlocBuilder<EpubContentProviderCubit, EpubContentState>(
-            builder: (context, state) {
-              final screenSize =MediaQuery.sizeOf(context);
-              final screenPadding = MediaQuery.paddingOf(context);
-              const spacing = 40*2;
-              final safeSize = Size(screenSize.width, (screenSize.height-screenPadding.vertical - kToolbarHeight-spacing),);
-              return switch (state) {
-                EpubContentLoading() => ExtendedImage.memory(epubBook.coverImage!),
-                EpubContentError() => const Text("Error formating epub"),
-                EpubContentSuccess() => BlocProvider(
-                    create: (context) => EpubReaderCubit(
-                      content: state.content,
-                      epubBook: epubBook,
-                      screenSize: safeSize,
-                      textStyle: const TextStyle(fontSize: 18, height: 1.6, fontFamily: 'Times'),
-                    )..initBook(),
-                    child: EpubGestureDetectorView(
-                      epubBook: epubBook,
-                      content: state.content,
+          body: LayoutBuilder(
+            builder:(context, constraints)=> BlocBuilder<EpubContentProviderCubit, EpubContentState>(
+              builder: (context, state) {
+
+                //final screenPadding = MediaQuery.paddingOf(context);
+                //const spacing = 40 * 2;
+                final safeSize = Size(
+                  constraints.maxWidth,
+                  (constraints.maxHeight-30),
+                );
+                return switch (state) {
+                  EpubContentLoading() =>
+                    ExtendedImage.memory(epubBook.coverImage!),
+                  EpubContentError() => const Text("Error formating epub"),
+                  EpubContentSuccess() => BlocProvider(
+                      create: (context) => EpubReaderCubit(
+                        content: state.content,
+                        epubBook: epubBook,
+                        screenSize: safeSize,
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          height: 1.6,
+                          fontFamily: 'Times',
+                          color: Colors.white,
+                        ),
+                      )..initBook(),
+                      child: EpubGestureDetectorView(
+                        epubBook: epubBook,
+                        content: state.content,
+                      ),
                     ),
-                  ),
-              };
-            },
+                };
+              },
+            ),
           ),
         ),
       ),

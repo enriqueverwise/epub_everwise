@@ -8,7 +8,10 @@ import 'models/paragraph.dart';
 export 'package:epub_parser/epub_parser.dart' hide Image;
 
 class EpubCfiReader {
-  EpubCfiReader()
+  EpubCfiReader({required this.chapters, required this.paragraphs})
+      : cfiInput = null;
+
+  EpubCfiReader.empty()
       : cfiInput = null,
         chapters = [],
         paragraphs = [];
@@ -50,8 +53,9 @@ class EpubCfiReader {
       return null;
     }
 
-    final int chapterIndex =
-        _getChapterIndexBy(cfiStep: cfiFragment.path!.localPath!.steps!.first)!;
+    final int chapterIndex = _getChapterIndexBy(
+            cfiStep: cfiFragment.path!.localPath!.steps!.first) ??
+        0;
     final chapter = chapters[chapterIndex];
     final document = chapterDocument(chapter);
     if (document == null) {
@@ -86,14 +90,13 @@ class EpubCfiReader {
   String? generateCfi({
     required EpubBook? book,
     required EpubChapter? chapter,
-    required int? paragraphIndex,
+    required int paragraphIndex,
     List<String> additional = const [],
     EpubCfiGenerator generator = const EpubCfiGenerator(),
   }) {
-    if (paragraphIndex == null) {
+    if (paragraphs.isEmpty) {
       return null;
     }
-
     final currentNode = paragraphs[paragraphIndex].element;
 
     final packageDocumentCFIComponent = _cfiChapter(
@@ -153,13 +156,34 @@ class EpubCfiReader {
       return null;
     }
 
-    final index = chapters.indexWhere(
+    int index = chapters.indexWhere(
       (chapter) =>
           chapter.anchor == cfiStep.idAssertion ||
           chapter.contentFileName!.contains(cfiStep.idAssertion!),
     );
 
     if (index == -1) {
+      int checkSubChapter(EpubChapter chapter) {
+        if (chapter.subChapters == null) return -1;
+        for (int indexSubChapter = 0;
+            indexSubChapter < chapter.subChapters!.length;
+            indexSubChapter++) {
+          final subChapter = chapter.subChapters![indexSubChapter];
+
+          if (subChapter.anchor == cfiStep.idAssertion ||
+              subChapter.contentFileName!.contains(cfiStep.idAssertion!)) {
+            return indexSubChapter;
+          }
+        }
+
+        return -1;
+      }
+
+      //if its not a chapter, check subchapter
+      index = chapters.indexWhere(
+        (chapter) => checkSubChapter(chapter) != -1,
+      );
+
       return null;
     }
 

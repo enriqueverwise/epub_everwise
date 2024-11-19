@@ -25,21 +25,27 @@ class EpubReaderView extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.only(top: kToolbarHeight / 2),
           decoration: switch (bgOption) {
-            EpubBackgroundOption.everwiseColor =>
-            const BoxDecoration(
+            EpubBackgroundOption.everwiseColor => const BoxDecoration(
                 gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF0F172A), Color(0xFF450A0A)])),
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF0F172A),
+                    Color(
+                      0xFF450A0A,
+                    ),
+                  ],
+                ),
+              ),
             EpubBackgroundOption.dark =>
-            const BoxDecoration(color: Colors.black),
-            EpubBackgroundOption.light =>
-            const BoxDecoration(
-              color: Colors.white,
-            ),
+              const BoxDecoration(color: Colors.black),
+            EpubBackgroundOption.light => const BoxDecoration(
+                color: Colors.white,
+              ),
           },
-          child: BlocSelector<EpubReaderCubit, EpubReaderState, EpubChapterContent>(
-            selector: (state) =>state.chapterContent,
+          child: BlocSelector<EpubReaderCubit, EpubReaderState,
+              EpubChapterContent>(
+            selector: (state) => state.chapterContent,
             builder: (context, chapterContent) {
               return EpubNavigationView(
                 listPages: chapterContent.listPages,

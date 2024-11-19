@@ -1,6 +1,7 @@
+import 'package:collection/collection.dart';
+import 'package:epub_everwise/data/epub_cfi_reader.dart';
 import 'package:epub_everwise/domain/entities/epub_reader_content.dart';
 import 'package:epub_everwise/domain/entities/epub_reader_physics.dart';
-import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
 import 'package:epub_everwise/data/models/epub_page.dart';
 import 'package:epub_everwise/domain/entities/epub_decorator.dart';
@@ -67,8 +68,6 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
       ),
     );
   }
-
-
 
   void onPageChange(EpubChangeDirection direction) {
     if (direction.isNext) {
@@ -232,5 +231,47 @@ class EpubReaderCubit extends Cubit<EpubReaderState> with EpubPaginationMixin {
 
   void goToPage(int pageIndex) {
     emit(state.copyWith(pageIndex: pageIndex));
+  }
+
+  void generateCfi() {
+    final cfiReader = EpubCfiReader(
+      chapters: epubBook.chapters ?? [],
+      paragraphs: content.listParagraphs,
+    );
+
+    final epubChapter = epubBook.chapters![content
+        .listChapters[
+            state.chapterContent.listPages[state.pageIndex].chapterIndex]
+        .index];
+
+    final cfi = cfiReader.generateCfi(
+      book: epubBook,
+      chapter: epubChapter,
+      paragraphIndex: state.chapterContent.listPages[state.pageIndex]
+          .paragraphsPerPage.first.metadata.paragraphIndex,
+    );
+  }
+
+  void goToParagraph(String cfiInput) {
+    final response = EpubCfiReader.parser(
+      cfiInput: cfiInput,
+      chapters: epubBook.chapters ?? [],
+      paragraphs: content.listParagraphs,
+    );
+
+    final pageIndex = state.chapterContent.listPages.indexWhere(
+      (page) => page.paragraphsPerPage.firstWhereOrNull((paragraph)=>paragraph.metadata.paragraphIndex == response.paragraphIndexByCfiFragment)!=null,
+    );
+    if (pageIndex != -1) {
+      goToPage(pageIndex);
+    }
+  }
+
+  void showDevDivider(bool show) {
+    emit(
+      state.copyWith(
+        showDevDivider: true,
+      ),
+    );
   }
 }

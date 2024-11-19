@@ -1,11 +1,9 @@
 import 'package:epub_everwise/data/epub_cfi_reader.dart';
 import 'package:epub_everwise/data/models/chapter_view_value.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
-import 'package:epub_everwise/domain/entities/epub_reader_content.dart';
 import 'package:epub_everwise/ui/reader/epub_reader_view.dart';
 import 'package:epub_everwise/ui/reader/viewmodel/epub_reader_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 export 'package:epub_parser/epub_parser.dart' hide Image;
 
@@ -120,6 +118,7 @@ class EpubGestureDetectorView extends StatelessWidget {
                   .read<EpubReaderCubit>()
                   .onPageChange(EpubChangeDirection.back);
             } else {
+              //context.read<EpubReaderCubit>().generateCfi();
               context.read<EpubReaderCubit>().updatePanelVisibility();
             }
           },

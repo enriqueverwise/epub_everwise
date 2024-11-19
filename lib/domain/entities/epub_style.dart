@@ -28,21 +28,25 @@ class EpubStyle extends Equatable {
   final TextStyle textStyle;
   final EpubBackgroundOption backgroundOption;
   final EpubReaderPhysics physics;
+  final bool showDevDivider;
   const EpubStyle({
     required this.textStyle,
     required this.backgroundOption,
     required this.physics,
+    this.showDevDivider = false,
   });
 
   EpubStyle copyWith({
     TextStyle? textStyle,
     EpubBackgroundOption? backgroundOption,
     EpubReaderPhysics? physics,
+    bool? showDevDivider,
   }) =>
       EpubStyle(
         textStyle: textStyle ?? this.textStyle,
         backgroundOption: backgroundOption ?? this.backgroundOption,
         physics: physics ?? this.physics,
+        showDevDivider: showDevDivider ?? this.showDevDivider,
       );
 
   @override
@@ -50,5 +54,6 @@ class EpubStyle extends Equatable {
     textStyle,
     backgroundOption,
     physics,
+    showDevDivider,
   ];
 }

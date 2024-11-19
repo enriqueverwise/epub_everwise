@@ -1,13 +1,10 @@
-import 'package:bloc/bloc.dart';
-import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/epub_parser.dart';
 import 'package:epub_everwise/data/models/chapter.dart';
 import 'package:epub_everwise/data/models/chapter_view_value.dart';
 import 'package:epub_everwise/data/models/epub_book_content.dart';
-import 'package:epub_everwise/data/models/paragraph.dart';
 import 'package:equatable/equatable.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 part 'epub_content_state.dart';
 
 class EpubContentProviderCubit extends Cubit<EpubContentState> {
@@ -19,33 +16,31 @@ class EpubContentProviderCubit extends Cubit<EpubContentState> {
   final String? epubFragmentId;
 
   List<EpubViewChapter> _getTableOfContents() {
-    int index = -1;
+    final epubViewChapters = <EpubViewChapter>[];
 
-    final listChapters = epubBook.chapters!.fold<List<EpubViewChapter>>(
-      [],
-      (acc, next) {
-        index += 1;
-        acc.add(
-          EpubViewChapter(
-            next.title,
-            0,
+    for (int chapterIndex = 0;
+        chapterIndex < epubBook.chapters!.length;
+        chapterIndex++) {
+      final epubChapter = epubBook.chapters![chapterIndex];
+
+      epubViewChapters.add(
+        EpubViewChapter(
+          title: epubChapter.title,
+          index: chapterIndex
+        ),
+      );
+
+      for (final subChapter in epubChapter.subChapters!) {
+        epubViewChapters.add(
+          EpubViewSubChapter(
+            title: subChapter.title,
+            parentChapterIndex: chapterIndex,
           ),
         );
-        for (final subChapter in next.subChapters!) {
-          index += 1;
-          acc.add(
-            EpubViewSubChapter(
-              subChapter.title,
-              0,
-              //_getChapterStartIndex(index),
-            ),
-          );
-        }
-        return acc;
-      },
-    );
+      }
+    }
 
-    return listChapters;
+    return epubViewChapters;
   }
 
   void updateCurrentChapter(EpubChapter? currentChapter, int chapterIndex,

@@ -1,18 +1,20 @@
 import 'package:equatable/equatable.dart';
 
-class EpubViewChapter extends Equatable{
-  const EpubViewChapter(this.title, this.startIndex);
+class EpubViewChapter extends Equatable {
+  const EpubViewChapter({required this.title, required this.index});
 
   final String? title;
-  final int startIndex;
-
-  String get type => this is EpubViewSubChapter ? 'subchapter' : 'chapter';
-
+  final int index;
+  bool get isSubChapter => this is EpubViewSubChapter;
 
   @override
-  List<Object?> get props => [title, startIndex];
+  List<Object?> get props => [title, index];
 }
 
 class EpubViewSubChapter extends EpubViewChapter {
-  EpubViewSubChapter(super.title, super.startIndex);
+  const EpubViewSubChapter({
+    required super.title,
+    required this.parentChapterIndex,
+  }) : super(index: parentChapterIndex);
+  final int parentChapterIndex;
 }

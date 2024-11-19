@@ -7,6 +7,7 @@ class EpubReaderState extends Equatable {
     required this.decorator,
     this.totalPages = 0,
     this.panelVisible = false,
+    this.showDevDivider = false,
   });
 
   final int pageIndex;
@@ -14,13 +15,14 @@ class EpubReaderState extends Equatable {
   final EpubChapterContent chapterContent;
   final EpubPageDecorator decorator;
   final bool panelVisible;
-
+  final bool showDevDivider;
   EpubReaderState copyWith({
     int? pageIndex,
     EpubChapterContent? chapterContent,
     EpubPageDecorator? decorator,
     int? totalPages,
     bool? panelVisible,
+    bool? showDevDivider,
   }) =>
       EpubReaderState(
         pageIndex: pageIndex ?? this.pageIndex,
@@ -28,6 +30,7 @@ class EpubReaderState extends Equatable {
         decorator: decorator ?? this.decorator,
         totalPages: totalPages ?? this.totalPages,
         panelVisible: panelVisible ?? this.panelVisible,
+        showDevDivider: showDevDivider ?? this.showDevDivider,
       );
 
   @override
@@ -37,5 +40,6 @@ class EpubReaderState extends Equatable {
         decorator,
         totalPages,
         panelVisible,
+        showDevDivider,
       ];
 }

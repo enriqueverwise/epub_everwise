@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:epub_everwise/domain/entities/epub_style.dart';
 import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/epub_page.dart';
 import 'package:epub_everwise/data/models/paragraph.dart';
@@ -27,7 +28,7 @@ class ScrollableReaderWidget extends StatefulWidget {
   final List<EpubPage> listPages;
   final Map<String, EpubImageContentFile> images;
   final EdgeInsets padding;
-  final TextStyle style;
+  final EpubStyle style;
 
   @override
   State<ScrollableReaderWidget> createState() => _ScrollableReaderWidgetState();
@@ -36,48 +37,6 @@ class ScrollableReaderWidget extends StatefulWidget {
 class _ScrollableReaderWidgetState extends State<ScrollableReaderWidget> {
   ItemScrollController? _itemScrollController;
   ItemPositionsListener? _itemPositionListener;
-
-  // void positionListener() {
-  //   final currentPage = _itemPositionListener?.itemPositions.value ?? 0;
-  //   if (context.read<EpubReaderCubit>().state.pageIndex != (currentPage)) {
-  //     final difference = context.read<EpubReaderCubit>().state.pageIndex - currentPage;
-  //     if (difference.abs() > 2) {
-  //       controller.jumpToPage(
-  //         context.read<EpubReaderCubit>().state.pageIndex,
-  //       );
-  //     } else {
-  //       controller.animateToPage(context.read<EpubReaderCubit>().state.pageIndex,
-  //           duration: const Duration(milliseconds: 300),
-  //           curve: Curves.ease);
-  //     }
-  //   }
-  // }
-
-  // void _changeListener() {
-  //   if (_itemPositionListener!.itemPositions.value.isEmpty) {
-  //     return;
-  //   }
-  //   final position = _itemPositionListener!.itemPositions.value.first;
-  //   final chapterIndex = _getChapterIndexBy(
-  //     positionIndex: position.index,
-  //     trailingEdge: position.itemTrailingEdge,
-  //     leadingEdge: position.itemLeadingEdge,
-  //   );
-  //   final paragraphIndex = _getParagraphIndexBy(
-  //     positionIndex: position.index,
-  //     trailingEdge: position.itemTrailingEdge,
-  //     leadingEdge: position.itemLeadingEdge,
-  //   );
-  //
-  //   _currentValue = EpubChapterViewValue(
-  //     chapter: chapterIndex >= 0 ? _chapters[chapterIndex] : null,
-  //     chapterNumber: chapterIndex + 1,
-  //     paragraphNumber: paragraphIndex + 1,
-  //     position: position,
-  //   );
-  //   _controller.currentValueListenable.value = _currentValue;
-  //   widget.onChapterChanged?.call(_currentValue);
-  // }
 
   @override
   void initState() {

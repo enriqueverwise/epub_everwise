@@ -34,7 +34,7 @@ class PageSelectorWidget extends StatelessWidget {
                       listPages: listPages,
                       images: images,
                       padding: decorator.padding,
-                      style: decorator.style.textStyle,
+                      style: decorator.style,
                       initialPage:
                           context.read<EpubReaderCubit>().state.pageIndex,
                     );
@@ -43,7 +43,7 @@ class PageSelectorWidget extends StatelessWidget {
                       listPages: listPages,
                       images: images,
                       padding: decorator.padding,
-                      style: decorator.style.textStyle,
+                      style: decorator.style,
                       initialPage:
                           context.read<EpubReaderCubit>().state.pageIndex,
                     );

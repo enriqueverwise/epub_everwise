@@ -1,3 +1,4 @@
+import 'package:epub_everwise/domain/entities/epub_style.dart';
 import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/epub_page.dart';
 import 'package:epub_everwise/data/models/paragraph.dart';
@@ -22,7 +23,7 @@ class PaginationReaderWidget extends StatelessWidget {
   final Map<String, EpubImageContentFile> images;
   late final controller = PageController(initialPage: initialPage);
   final EdgeInsets padding;
-  final TextStyle style;
+  final EpubStyle style;
 
   @override
   Widget build(BuildContext context) {

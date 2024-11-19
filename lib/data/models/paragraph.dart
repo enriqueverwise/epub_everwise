@@ -9,10 +9,14 @@ enum TypeParagraph {
   h4,
   h5,
   h6,
-  text;
+  text,
+  table,
+  jump;
 
   bool get isImg => this == image;
   bool get isText => this == text;
+  bool get isTable => this == table;
+  bool get isHighTitle => this == h1 || this == h2;
   bool get isTitle =>
       this == h1 ||
       this == h2 ||

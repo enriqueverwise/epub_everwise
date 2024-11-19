@@ -1,3 +1,4 @@
+
 import 'package:epub_everwise/epub_everwise.dart';
 import 'package:epub_everwise/data/models/epub_page.dart';
 import 'package:epub_everwise/data/models/paragraph.dart';
@@ -10,8 +11,9 @@ mixin EpubPaginationMixin {
     Map<String, EpubImageContentFile> images,
     double maxWidth,
   ) {
-    Element? imgElement =
-        paragraph.element.getElementsByTagName("img").firstOrNull;
+    Element? imgElement = paragraph.element.localName == "img" ? paragraph.element : null;
+
+    imgElement ??= paragraph.element.getElementsByTagName("img").firstOrNull;
 
     imgElement ??= paragraph.element.getElementsByTagName("image").firstOrNull;
     String? filePath = imgElement?.attributes["src"];
@@ -29,40 +31,63 @@ mixin EpubPaginationMixin {
 
       return imageHeight;
     }
-    return maxWidth;
+    return null;
   }
 
-  double getHeightParagraph(
+  double? getHeightParagraph(
     EpubParagraph paragraph,
     Size screenSize,
     TextStyle style,
     Map<String, EpubImageContentFile> images,
   ) {
-    double heightParagraph = 0;
-    if (paragraph.type.isText) {
-      heightParagraph = calculateHeightPerTextParagraph(
-        screenSize.width,
-        style,
-        paragraph,
-      );
-    } else if (paragraph.type.isTitle) {
-      heightParagraph = (calculateHeightPerTextParagraph(
-            screenSize.width,
-            style.copyWith(
-              fontSize: style.fontSize! + 3,
-              fontWeight: FontWeight.bold,
-            ),
-            paragraph,
-          ) +
-          20);
-    } else {
-      heightParagraph = getImageHeight(
-            paragraph,
-            images,
-            screenSize.width - 30,
-          ) ??
-          0;
+    double? heightParagraph;
+
+    switch (paragraph.type) {
+      case TypeParagraph.image:
+        heightParagraph = getImageHeight(
+              paragraph,
+              images,
+              screenSize.width - 30,
+            );
+        break;
+      case TypeParagraph.jump:
+        heightParagraph = 10;
+      case TypeParagraph.text:
+        heightParagraph = calculateHeightPerTextParagraph(
+          screenSize.width-10,
+          style,
+          paragraph,
+        );
+        break;
+      case TypeParagraph.h1:
+      case TypeParagraph.h2:
+      case TypeParagraph.h3:
+      case TypeParagraph.h4:
+      case TypeParagraph.h5:
+      case TypeParagraph.h6:
+        heightParagraph = (calculateHeightPerTextParagraph(
+              screenSize.width,
+              style.copyWith(
+                fontSize: style.fontSize! + 3,
+                fontWeight: FontWeight.bold,
+              ),
+              paragraph,
+            ) +
+            20);
+        break;
+      case TypeParagraph.table:
+        heightParagraph = (calculateHeightPerTextParagraph(
+          screenSize.width,
+          style.copyWith(
+            fontSize: style.fontSize!,
+            fontWeight: FontWeight.bold,
+          ),
+          paragraph,
+        ));
+        break;
     }
+
+    print("heightParagraph: $heightParagraph");
     return heightParagraph;
   }
 
@@ -92,8 +117,10 @@ mixin EpubPaginationMixin {
     required EpubParagraph paragraph,
     required double heightPageAvailable,
     required double paragraphHeight,
+    required TextStyle style,
+    required double width,
   }) {
-    if (heightPageAvailable < 30) {
+    if (heightPageAvailable <= 30) {
       return null;
     }
     //Percentage of text from paragraph remaining
@@ -102,42 +129,36 @@ mixin EpubPaginationMixin {
     int positionBreakParagraph =
         (paragraph.element.text.length * percentageOfParagraphUsable).floor();
 
+    print("height available: $heightPageAvailable");
+
+    positionBreakParagraph = getLastParagraphPositionForEndLine(
+      positionBreakParagraph: positionBreakParagraph,
+      paragraph: paragraph,
+      heightPageAvailable: heightPageAvailable,
+      style: style,
+      width: width,
+    );
+
     final int remainingParagraphText =
         paragraph.element.text.length - positionBreakParagraph;
-    if (remainingParagraphText < 9) {
+    if (remainingParagraphText < 10) {
       positionBreakParagraph = paragraph.element.text.length;
     } else {
-      int endPosition = calculateBestEndPosition(
-        paragraph: paragraph,
-        startPosition: 0,
-        endPosition: positionBreakParagraph,
-      );
-      positionBreakParagraph = endPosition;
+      // int endPosition = calculateBestEndPosition(
+      //   paragraph: paragraph,
+      //   startPosition: 0,
+      //   endPosition: positionBreakParagraph,
+      // );
+      // positionBreakParagraph = endPosition;
     }
 
     final breakParagraph = EndBreakEpubParagraph(
       breakPosition: positionBreakParagraph,
       paragraph: paragraph,
-      usedHeight: (paragraphHeight * percentageOfParagraphUsable) + 20,
+      usedHeight: (paragraphHeight * percentageOfParagraphUsable),
       totalHeight: paragraphHeight,
     );
     return breakParagraph;
-  }
-
-  List<EpubParagraph> getParagraphsOfChapter(
-      int chapter, List<EpubParagraph> listAllParagraphs) {
-    final blockOfParagraphByChapter = <int, List<EpubParagraph>>{};
-
-    for (final ph in listAllParagraphs) {
-      blockOfParagraphByChapter.update(ph.chapterIndex, (listPh) {
-        listPh.add(ph);
-        return listPh;
-      }, ifAbsent: () {
-        return [ph];
-      });
-    }
-
-    return blockOfParagraphByChapter[chapter] ?? [];
   }
 
   List<EpubPage> pagesForListParagraphs({
@@ -170,19 +191,23 @@ mixin EpubPaginationMixin {
         screenSize,
         style,
         images,
-      );
+      ) ?? maxHeight;
 
       if (currentPage != null &&
           currentPage.chapterIndex != paragraphPage.value.chapterIndex) {
         listPages.add(currentPage);
         currentPage = null;
       }
+      print("current paragraph: ${indexParagraph}");
       if (currentPage == null) {
+        print("new page");
         final listPagesOfParagraph = getPagesForParagraph(
           paragraph: paragraphPage,
-          maxHeight: maxHeight-40,
+          maxHeight: maxHeight,
           heightParagraph: heightParagraph,
           realHeightParagraph: heightParagraph,
+          style: style,
+          width: screenSize.width,
         );
 
         currentPage = listPagesOfParagraph.removeLast();
@@ -190,28 +215,38 @@ mixin EpubPaginationMixin {
           listPages.addAll(listPagesOfParagraph);
         }
 
-        if ((currentPage.height + 30) >= maxHeight ||
+        if ((currentPage.height) >= maxHeight ||
             indexParagraph == (listParagraphs.length - 1)) {
           listPages.add(currentPage);
           currentPage = null;
         }
         continue;
       } else {
+        print("dirty page ${listPages.length}");
         final remainingPageHeight = maxHeight - currentPage.height;
 
         if (remainingPageHeight >= heightParagraph) {
+          print("adding whole paragraph to page");
           currentPage.paragraphsPerPage.add(paragraphPage);
           currentPage = currentPage.copyWith(
-            height: (currentPage.height + heightParagraph + 20),
+            height: (currentPage.height +
+                heightParagraph +
+                sizeParagraphJump(
+                  style.fontSize!,
+                  style.height!,
+                )),
           );
-          if ((currentPage.height + 30) >= maxHeight ||
+          if ((currentPage.height) >= maxHeight ||
               indexParagraph == (listParagraphs.length - 1)) {
             listPages.add(currentPage);
             currentPage = null;
             continue;
           }
         } else {
-          if (paragraphPage.value.type.isImg) {
+          if (paragraphPage.value.type.isImg ||
+              paragraphPage.value.type.isTable ||
+              paragraphPage.value.type.isHighTitle) {
+            print("adding img/table to page");
             listPages.add(currentPage);
             currentPage = EpubPage(
               paragraphsPerPage: [paragraphPage],
@@ -221,13 +256,21 @@ mixin EpubPaginationMixin {
 
             continue;
           }
+
+          print(
+              "This paragraph needs to be cut hp: $heightParagraph currentPageHeight: ${currentPage.height} remainingPageHeight: $remainingPageHeight");
           EndBreakEpubParagraph? endBreakEpubParagraph = calculateNiceEndOfPage(
             paragraph: paragraphPage.value,
-            heightPageAvailable: remainingPageHeight-20,
+            heightPageAvailable: remainingPageHeight,
             paragraphHeight: heightParagraph,
+            style: style,
+            width: screenSize.width,
           );
 
           if (endBreakEpubParagraph != null) {
+            currentPage = currentPage.copyWith(
+              height: (currentPage.height + endBreakEpubParagraph.usedHeight),
+            );
             currentPage.paragraphsPerPage.add(
               paragraphPage.copyWith(
                 metadata: paragraphPage.metadata.copyWith(
@@ -239,26 +282,29 @@ mixin EpubPaginationMixin {
 
           listPages.add(currentPage);
           currentPage = null;
-
           final listParagraphPages = getPagesForParagraph(
-            paragraph: paragraphPage,
-            maxHeight: maxHeight,
-            heightParagraph: heightParagraph -
-                (endBreakEpubParagraph != null
-                    ? endBreakEpubParagraph.usedHeight
-                    : 0),
-            realHeightParagraph: heightParagraph,
-            indexBreakPosition: endBreakEpubParagraph != null
-                ? endBreakEpubParagraph.breakPosition
-                : 0,
-          );
+              paragraph: paragraphPage,
+              maxHeight: maxHeight,
+              heightParagraph: heightParagraph -
+                  (endBreakEpubParagraph != null
+                      ? endBreakEpubParagraph.usedHeight
+                      : 0),
+              realHeightParagraph: heightParagraph,
+              indexBreakPosition: endBreakEpubParagraph != null
+                  ? endBreakEpubParagraph.breakPosition
+                  : 0,
+              style: style,
+              width: screenSize.width);
 
+          if (listParagraphPages.isEmpty) {
+            continue;
+          }
           currentPage = listParagraphPages.removeLast();
           if (listParagraphPages.isNotEmpty) {
             listPages.addAll(listParagraphPages);
           }
 
-          if ((currentPage.height + 30) >= maxHeight ||
+          if ((currentPage.height + sizeParagraphJump(style.fontSize!,style.height!, )) >= maxHeight ||
               indexParagraph == (listParagraphs.length - 1)) {
             listPages.add(currentPage);
             currentPage = null;
@@ -275,14 +321,20 @@ mixin EpubPaginationMixin {
     required double heightParagraph,
     required double realHeightParagraph,
     int? indexBreakPosition,
+    required TextStyle style,
+    required double width,
   }) {
+    int startPosition = indexBreakPosition ?? 0;
+    if (startPosition < 0) {
+      startPosition = 0;
+    }
     final listPagesParagraph = <EpubPage>[];
 
     if (paragraph.value.type.isImg) {
       final epubPage = EpubPage(
         paragraphsPerPage: [paragraph],
         chapterIndex: paragraph.value.chapterIndex,
-        height: heightParagraph + 40,
+        height: heightParagraph,
       );
       listPagesParagraph.add(epubPage);
       return listPagesParagraph;
@@ -290,25 +342,38 @@ mixin EpubPaginationMixin {
 
     final numPagesForParagraph = (heightParagraph / maxHeight);
     final nRealPages = numPagesForParagraph.floor();
-    int startPosition = indexBreakPosition ?? 0;
-    double sizeParagraphPortion = 0;
+
+    print("pages: $numPagesForParagraph height Paragraph $heightParagraph");
     if (nRealPages > 0) {
       final percentagePortionParagraph = maxHeight / heightParagraph;
-      sizeParagraphPortion = heightParagraph * percentagePortionParagraph;
 
+      print(
+          "${paragraph.metadata.paragraphIndex}: paragraph used per page: ${percentagePortionParagraph}");
+      if (startPosition < 0) {
+        print("startPosition: $startPosition");
+      }
       final textTotalPortionParagraph =
           (paragraph.value.element.text.substring(startPosition).length *
                   percentagePortionParagraph)
               .floor();
 
-
       for (int indexPage = 0; indexPage < nRealPages; indexPage++) {
         try {
           int endPosition = (startPosition + textTotalPortionParagraph).floor();
-          endPosition = calculateBestEndPosition(
+
+          // endPosition = calculateBestEndPosition(
+          //   paragraph: paragraph.value,
+          //   startPosition: startPosition,
+          //   endPosition: endPosition,
+          // );
+
+          endPosition = getLastParagraphPositionForEndLine(
+            positionBreakParagraph: endPosition,
             paragraph: paragraph.value,
+            heightPageAvailable: maxHeight,
+            style: style,
+            width: width,
             startPosition: startPosition,
-            endPosition: endPosition,
           );
 
           paragraph = paragraph.copyWith(
@@ -318,13 +383,6 @@ mixin EpubPaginationMixin {
             ),
           );
 
-          // final startBreakParagraph = StartBreakEpubParagraph(
-          //   startPosition: startPosition,
-          //   endPosition: endPosition,
-          //   paragraph: paragraph,
-          //   totalHeight: heightParagraph,
-          //   usedHeight: maxHeight,
-          // );
           startPosition = endPosition;
           final epubPage = EpubPage(
             paragraphsPerPage: [paragraph],
@@ -338,25 +396,37 @@ mixin EpubPaginationMixin {
       }
     }
     EpubPage epubPage;
+
     if (startPosition != 0) {
+      if (startPosition >= (paragraph.value.element.text.length-1)) {
+        return listPagesParagraph;
+      }
+      final textParagraphLeftOver = paragraph.value.element.text.substring(
+        startPosition,
+      );
+
+      if (textParagraphLeftOver.trim().isEmpty) {
+        return listPagesParagraph;
+      }
       //Page with leftOvers of paragraph
+
+      final heightParagraphLeftOver = calculateHeightText(
+        width,
+        style,
+        textParagraphLeftOver,
+      );
 
       paragraph = paragraph.copyWith(
         metadata: paragraph.metadata.copyWith(
           startPosition: startPosition,
+          endPosition: paragraph.value.element.text.length,
         ),
       );
-      // final startBreakParagraph = StartBreakEpubParagraph(
-      //   startPosition: startPosition,
-      //   paragraph: paragraph,
-      //   totalHeight: heightParagraph,
-      //   usedHeight: heightParagraph - sizeParagraphPortion,
-      // );
 
       epubPage = EpubPage(
         paragraphsPerPage: [paragraph],
         chapterIndex: paragraph.value.chapterIndex,
-        height: heightParagraph - sizeParagraphPortion,
+        height: heightParagraphLeftOver,
       );
     } else {
       epubPage = EpubPage(
@@ -375,6 +445,10 @@ mixin EpubPaginationMixin {
     required int startPosition,
     required int endPosition,
   }) {
+    if (endPosition - startPosition < 40) {
+      return endPosition;
+    }
+
     int startPositionSearch = endPosition - 25;
     int endPositionSearch = endPosition;
     if (startPosition > startPositionSearch) {
@@ -411,4 +485,60 @@ mixin EpubPaginationMixin {
     }
     return endPositionSearch;
   }
+
+  int getLastParagraphPositionForEndLine({
+    int startPosition = 0,
+    required int positionBreakParagraph,
+    required EpubParagraph paragraph,
+    required double heightPageAvailable,
+    required TextStyle style,
+    required double width,
+  }) {
+    double? previousHeight;
+
+    for (int endPosition = positionBreakParagraph;
+        endPosition < (paragraph.element.text.length);) {
+      final textHeight = calculateHeightText(
+        width,
+        style,
+        paragraph.element.text.substring(startPosition, endPosition),
+      );
+
+      if (textHeight > heightPageAvailable) {
+        if (previousHeight == null || previousHeight > heightPageAvailable) {
+          print(
+              "text needs to be reduced, too big: h: $textHeight ph: $heightPageAvailable");
+          endPosition--;
+          previousHeight = textHeight;
+        } else {
+          print(
+              "breaking end of position ${endPosition} height-too big: $textHeight");
+          positionBreakParagraph = endPosition - 1;
+          break;
+        }
+
+        break;
+      } else {
+        if (previousHeight == null || previousHeight < heightPageAvailable) {
+          print("text still can grow: h: $textHeight ph: $heightPageAvailable");
+          endPosition++;
+          previousHeight = textHeight;
+        } else {
+          positionBreakParagraph = endPosition;
+          break;
+        }
+      }
+    }
+
+    if (positionBreakParagraph < 0) {
+      positionBreakParagraph = 0;
+    }
+
+    if (positionBreakParagraph > (paragraph.element.text.length - 1)) {
+      positionBreakParagraph = paragraph.element.text.length;
+    }
+    return positionBreakParagraph;
+  }
+
+  double sizeParagraphJump(double fontSize, double height) => fontSize * height;
 }

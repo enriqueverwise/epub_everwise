@@ -4,7 +4,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 class EpubStyleManagerWidget extends StatefulWidget {
-  const EpubStyleManagerWidget({super.key, required this.epubStyle});
+  const EpubStyleManagerWidget({
+    super.key,
+    required this.epubStyle,
+  });
   final EpubStyle epubStyle;
   @override
   State<EpubStyleManagerWidget> createState() => _EpubStyleManagerWidgetState();
@@ -12,7 +15,6 @@ class EpubStyleManagerWidget extends StatefulWidget {
 
 class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
   late EpubStyle _epubStyle;
-
   @override
   void initState() {
     super.initState();
@@ -34,11 +36,11 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
             ),
             Row(
               children: [
-                selectScrollDirection(),
+                Expanded(child: selectScrollDirection()),
                 SizedBox(
                   width: 10,
                 ),
-                selectFontFamily(),
+                Expanded(child: selectFontFamily()),
               ],
             ),
             SizedBox(
@@ -46,15 +48,30 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
             ),
             Row(
               children: [
-                fontSizeController(),
+                Expanded(child: fontSizeController()),
                 SizedBox(
                   width: 10,
                 ),
-                fontHeightController(),
+                Expanded(child: fontHeightController()),
               ],
             ),
             SizedBox(
               height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Checkbox(
+                    value: _epubStyle.showDevDivider,
+                    onChanged: (value) {
+                      setState(() {
+                        _epubStyle = _epubStyle.copyWith(
+                          showDevDivider: value,
+                        );
+                      });
+                    }),
+                Text("Show dev divider"),
+              ],
             ),
             ElevatedButton(
               onPressed: () {
@@ -74,7 +91,7 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Colors.white.withOpacity(0.2)),
+          color: Colors.grey.withOpacity(0.2)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -130,7 +147,7 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
       ),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Colors.white.withOpacity(0.2)),
+          color: Colors.grey.withOpacity(0.2)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -179,7 +196,8 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
             borderRadius: BorderRadius.circular(15),
             border: isSelected
                 ? Border.all(
-                    color: Colors.white,
+                    color: Colors.grey,
+                    width: 2,
                   )
                 : null,
             color: bgOption.color,
@@ -199,7 +217,7 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Colors.white.withOpacity(0.2)),
+          color: Colors.grey.withOpacity(0.2)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -262,13 +280,10 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
 
   Widget selectFontFamily() {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 10,
-      ),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.grey.withOpacity(0.2)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -314,7 +329,7 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
           borderRadius: BorderRadius.circular(10),
           border: isSelected
               ? Border.all(
-                  color: Colors.white,
+                  color: Colors.red,
                 )
               : null,
         ),
@@ -330,8 +345,8 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.grey.withOpacity(0.2)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -377,7 +392,7 @@ class _EpubStyleManagerWidgetState extends State<EpubStyleManagerWidget> {
           borderRadius: BorderRadius.circular(10),
           border: isSelected
               ? Border.all(
-                  color: Colors.white,
+                  color: Colors.red,
                 )
               : null,
         ),
